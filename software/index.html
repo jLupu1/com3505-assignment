@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="bg-background font-[Inter]">
+<html class="font-[Inter]">
 
 <head>
     <link
@@ -23,15 +23,15 @@
         <h1 class="font-bold text-4xl">COM3505 The Internet of Things</h1>
         <p>Benjamin Samuel-Gilbert and Jonathan Lupu</p>
     </div>
-    <div class="gap-6 md:gap-8 grid md:grid-cols-3">
-        <div class="border rounded-md p-8 space-y-8 md:col-span-2">
+    <div class="gap-6 grid md:gap-8 md:grid-cols-3">
+        <div class="border flex flex-col gap-8 p-8 rounded-md md:col-span-2">
             <div class="flex justify-between max-md:flex-col">
                 <h2 class="font-bold text-lg">Live Temperature</h2>
                 <p class="font-bold text-4xl">{temperature}</p>
             </div>
             <canvas class="rounded" id="chart"></canvas>
         </div>
-        <div class="border rounded-md p-8 space-y-8">
+        <div class="border flex flex-col gap-8 p-8 rounded-md">
             <h2 class="font-bold text-lg">LED Control</h2>
             <div class="gap-2 grid grid-cols-2">
                 <button class="border font-bold p-2 rounded uppercase">All On</button>
