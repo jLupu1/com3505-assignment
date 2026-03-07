@@ -126,8 +126,9 @@
         //
 
         const ctx = document.querySelector("#chart");
-        const WINDOW_MS = 15 * 60 * 1000;
+        const WINDOW_MS = 3 * 60 * 1000;
 
+        const now = Date.now();
         const chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -142,8 +143,8 @@
                 },
                 scales: {
                     x: {
-                        min: Date.now() - WINDOW_MS,
-                        max: Date.now(),
+                        min: now - WINDOW_MS,
+                        max: now,
                         type: 'time',
                         time: {
                             unit: 'minute',
@@ -161,7 +162,7 @@
             const now = Date.now();
 
             chart.data.datasets[0].data.push({
-                x: now,
+                x: Date.now(),
                 y: value
             });
 
@@ -170,6 +171,19 @@
 
             chart.update();
         }
+
+        function callback() {
+            const now = Date.now();
+            chart.options.scales.x.min = now - WINDOW_MS;
+            chart.options.scales.x.max = now;
+            chart.update();
+            requestAnimationFrame(callback);
+        }
+        // requestAnimationFrame(callback);
+
+        // setInterval(() => {
+        //     setTemperature(Math.floor(Math.random() * 30));
+        // }, 1000);
 
         //
 
