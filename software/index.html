@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style type="text/tailwindcss">
         @layer base {
             button:not(:disabled),
@@ -16,10 +17,11 @@
             }
         }
     </style>
+    <title>COM3505 The Internet of Things</title>
 </head>
 
 <body class="flex flex-col gap-6 p-6 md:p-8 md:gap-8">
-    <div class="flex flex-col gap-2 md:gap-1">
+    <div class="flex flex-col max-md:gap-2">
         <h1 class="font-bold text-4xl">COM3505 The Internet of Things</h1>
         <p>Benjamin Samuel-Gilbert and Jonathan Lupu</p>
     </div>
@@ -27,61 +29,152 @@
         <div class="border flex flex-col gap-8 p-8 rounded-md md:col-span-2">
             <div class="flex justify-between max-md:flex-col">
                 <h2 class="font-bold text-lg">Live Temperature</h2>
-                <p class="font-bold text-4xl">{temperature}</p>
+                <p class="font-bold text-4xl" id="temperature">{temperature}</p>
             </div>
             <canvas class="rounded" id="chart"></canvas>
         </div>
         <div class="border flex flex-col gap-8 p-8 rounded-md">
             <h2 class="font-bold text-lg">LED Control</h2>
             <div class="gap-2 grid grid-cols-2">
-                <button class="border font-bold p-2 rounded uppercase">All On</button>
-                <button class="border font-bold p-2 rounded uppercase">All Off</button>
-                <button class="border font-bold p-2 rounded uppercase">Pattern</button>
-                <button class="border font-bold p-2 rounded uppercase">Pattern</button>
+                <button class="border font-bold p-2 pattern rounded uppercase"
+                    onclick="setPattern(`pattern`, this)">Pattern</button>
+                <button class="border font-bold p-2 pattern rounded uppercase"
+                    onclick="setPattern(`pattern`, this)">Pattern</button>
+                <button class="border font-bold p-2 pattern rounded uppercase"
+                    onclick="setPattern(`pattern`, this)">Pattern</button>
+                <button class="border font-bold p-2 pattern rounded uppercase"
+                    onclick="setPattern(`pattern`, this)">Pattern</button>
             </div>
             <div>
                 <div class="border flex justify-center p-4 rounded">
                     <div class="gap-4 grid grid-cols-5">
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
+                        <button class="border LED rounded-full size-10" data-colour="0 255 0"
+                            onclick="toggleLed(0, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="0 255 0"
+                            onclick="toggleLed(1, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="0 255 0"
+                            onclick="toggleLed(2, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="0 255 0"
+                            onclick="toggleLed(3, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="0 255 0"
+                            onclick="toggleLed(4, this)"></button>
                         <!---->
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 255 0"
+                            onclick="toggleLed(5, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 255 0"
+                            onclick="toggleLed(6, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 255 0"
+                            onclick="toggleLed(7, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 255 0"
+                            onclick="toggleLed(8, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 255 0"
+                            onclick="toggleLed(9, this)"></button>
                         <!---->
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
-                        <button class="bg-white border rounded-full size-10"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 0 0"
+                            onclick="toggleLed(10, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 0 0"
+                            onclick="toggleLed(11, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 0 0"
+                            onclick="toggleLed(12, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 0 0"
+                            onclick="toggleLed(13, this)"></button>
+                        <button class="border LED rounded-full size-10" data-colour="255 0 0"
+                            onclick="toggleLed(14, this)"></button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <script>
-        const ctx = document.getElementById("chart");
+        function setTemperature(temperature) {
+            document.querySelector("#temperature").textContent = temperature;
+            addPoint(temperature);
+        }
 
-        new Chart(ctx, {
+        function setLedArray(ledArray) {
+            document.querySelectorAll(".LED").forEach((b, i) => {
+                b.setAttribute("data-value", ledArray[i]);
+                b.style.backgroundColor = `rgb(${b.getAttribute("data-colour")} / ${ledArray[i]})`;
+            });
+        }
+
+        function setPattern(pattern, button) {
+            document.querySelectorAll(".pattern").forEach((b, i) => {
+                b.style.backgroundColor = "white";
+                b.style.color = "black";
+            });
+            button.style.backgroundColor = "black";
+            button.style.color = "white";
+            websocket.send();
+        }
+
+        function toggleLed(i, button) {
+            const opacity = Number(button.getAttribute("data-value")) ? "0" : "1";
+            button.setAttribute("data-value", opacity);
+            button.style.backgroundColor = `rgb(${button.getAttribute("data-colour")} / ${opacity})`;
+            websocket.send();
+        }
+
+        //
+
+        const ctx = document.querySelector("#chart");
+        const WINDOW_MS = 15 * 60 * 1000;
+
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                }],
+                datasets: [{}],
             },
             options: {
+                animation: false,
                 plugins: {
                     legend: {
                         display: false,
                     },
                 },
+                scales: {
+                    x: {
+                        min: Date.now() - WINDOW_MS,
+                        max: Date.now(),
+                        type: 'time',
+                        time: {
+                            unit: 'minute',
+                            stepSize: 1,
+                            displayFormats: {
+                                minute: 'HH:mm'
+                            },
+                        },
+                    },
+                },
             },
+        });
+
+        function addPoint(value) {
+            const now = Date.now();
+
+            chart.data.datasets[0].data.push({
+                x: now,
+                y: value
+            });
+
+            chart.options.scales.x.min = now - WINDOW_MS;
+            chart.options.scales.x.max = now;
+
+            chart.update();
+        }
+
+        //
+
+        const websocket = new WebSocket("http://127.0.0.1:5000/software");
+        websocket.addEventListener("message", (event) => {
+            message = JSON.load(event.data);
+
+            if (message.type == "temperature") {
+                setTemperature(message.data);
+            }
+            if (message.type == "ledArray") {
+                setLedArray(message.data.map((value) => value / 255));
+            }
         });
     </script>
 </body>
