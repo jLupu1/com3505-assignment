@@ -93,8 +93,8 @@
 
         function setLedArray(ledArray) {
             document.querySelectorAll(".LED").forEach((b, i) => {
-                b.setAttribute("data-value", ledArray[i]);
-                b.style.backgroundColor = `rgb(${b.getAttribute("data-colour")} / ${ledArray[i]})`;
+                b.dataset.value = ledArray[i];
+                b.style.backgroundColor = `rgb(${b.dataset.colour} / ${ledArray[i]})`;
             });
         }
 
@@ -105,14 +105,22 @@
             });
             button.style.backgroundColor = "black";
             button.style.color = "white";
-            websocket.send();
+
+            websocket.send(JSON.stringify({
+                type: "pattern",
+                value: pattern,
+            }));
         }
 
         function toggleLed(i, button) {
-            const opacity = Number(button.getAttribute("data-value")) ? "0" : "1";
-            button.setAttribute("data-value", opacity);
-            button.style.backgroundColor = `rgb(${button.getAttribute("data-colour")} / ${opacity})`;
-            websocket.send();
+            const opacity = Number(button.dataset.value) ? "0" : "1";
+            button.dataset.value = opacity;
+            button.style.backgroundColor = `rgb(${button.dataset.colour} / ${opacity})`;
+
+            websocket.send(JSON.stringify({
+                type: "toggle",
+                index: i,
+            }));
         }
 
         //
@@ -165,9 +173,9 @@
 
         //
 
-        const websocket = new WebSocket("http://127.0.0.1:5000/software");
+        const websocket = new WebSocket("ws://127.0.0.1:5000/software");
         websocket.addEventListener("message", (event) => {
-            message = JSON.load(event.data);
+            message = JSON.parse(event.data);
 
             if (message.type == "temperature") {
                 setTemperature(message.data);
