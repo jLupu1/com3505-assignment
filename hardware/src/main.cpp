@@ -8,6 +8,29 @@ const char *password = "PASSWORD";
 
 WebSocketsClient webSocket;
 
+#define TEMP_PIN A1
+#define ADC_MAX 4095.0
+#define VREF 3.3
+
+float temperatureC;
+
+float readTemp(){
+    int adcValue = analogRead(TEMP_PIN);
+    float voltage = adcValue * VREF / ADC_MAX;
+    float tempC = (voltage - 0.5) * 100.0;
+
+    return tempC;
+}
+
+void handleTemp(){
+    temperatureC = readTemp();
+    Serial.print("Temperature: ");
+    Serial.print(temperatureC);
+
+}
+
+
+
 void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
 {
     switch (type)
@@ -29,13 +52,23 @@ void setup()
 
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED)
+    {
+        Serial.println("Connecting to WiFi...");
         delay(500);
-
+    }
+    Serial.println("Connected to WiFi");
     webSocket.begin("192.168.1.100", 5000, "/hardware");
     webSocket.onEvent(webSocketEventHandler);
+
+    analogReadResolution(12);
+    analogSetPinAttenuation(TEMP_PIN, ADC_11db);
 }
 
 void loop()
 {
     webSocket.loop();
+    float temp = readTemp();
+    Serial.print("Temperature: ");
+    Serial.println(temp);
+    delay(2000);
 }
