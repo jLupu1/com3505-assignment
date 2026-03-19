@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/CMakeFiles/bootloader
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/CMakeFiles/bootloader.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/CMakeFiles/bootloader-complete.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/Users/jonathanlupu/com3505-assignment/byte-me/.pio/build/adafruit_feather_esp32s3/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

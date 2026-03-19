@@ -3,14 +3,17 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 
-const char *ssid = "SSID";
-const char *password = "PASSWORD";
+const char *ssid = "Jonathan iPhone";
+const char *password = "cpfcilove6789";
 
 WebSocketsClient webSocket;
 
 #define TEMP_PIN A1
 #define ADC_MAX 4095.0
 #define VREF 3.3
+
+const long delayTime = 2000; //delay time 
+unsigned long previousMillis = 0;
 
 float temperatureC;
 
@@ -24,11 +27,9 @@ float readTemp(){
 
 void handleTemp(){
     temperatureC = readTemp();
-    Serial.print("Temperature: ");
-    Serial.print(temperatureC);
-
+    bool res = webSocket.sendTXT("{\"type\":\"temperature\",\"data\":" + String(temperatureC) + "}");
+    Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
 }
-
 
 
 void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
@@ -57,18 +58,21 @@ void setup()
         delay(500);
     }
     Serial.println("Connected to WiFi");
-    webSocket.begin("192.168.1.100", 5000, "/hardware");
+    webSocket.begin("172.20.10.3", 6767, "/hardware");
     webSocket.onEvent(webSocketEventHandler);
 
     analogReadResolution(12);
     analogSetPinAttenuation(TEMP_PIN, ADC_11db);
+
 }
 
 void loop()
 {
     webSocket.loop();
-    float temp = readTemp();
-    Serial.print("Temperature: ");
-    Serial.println(temp);
-    delay(2000);
+    unsigned long currentMillis = millis();
+    if(currentMillis - previousMillis >= delayTime) {
+        previousMillis = currentMillis;
+        handleTemp();
+    }
+
 }

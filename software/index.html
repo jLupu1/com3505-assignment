@@ -188,8 +188,9 @@
 
         //
 
-        const websocket = new WebSocket("ws://127.0.0.1:5000/software");
+        const websocket = new WebSocket("ws://127.0.0.1:6767/software");
         websocket.addEventListener("message", (event) => {
+            console.log(event.data)
             message = JSON.parse(event.data);
 
             if (message.type == "temperature") {

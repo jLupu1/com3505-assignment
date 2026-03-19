@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "esp-idf/wear_levelling",
+		"source" : "/Users/jonathanlupu/.platformio/packages/framework-espidf/components/wear_levelling"
+	}
+}
