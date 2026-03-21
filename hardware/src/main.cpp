@@ -3,8 +3,8 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 
-const char *ssid = "Jonathan iPhone";
-const char *password = "cpfcilove6789";
+const char *ssid = "ssid";
+const char *password = "password";
 
 WebSocketsClient webSocket;
 
