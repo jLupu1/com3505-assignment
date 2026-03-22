@@ -3,8 +3,8 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 
-const char *ssid = "ssid";
-const char *password = "password";
+const char *ssid = "SSID";
+const char *password = "PASSWORD";
 
 WebSocketsClient webSocket;
 
@@ -14,6 +14,9 @@ WebSocketsClient webSocket;
 
 const long delayTime = 2000; //delay time 
 unsigned long previousMillis = 0;
+
+// Currently used to toggle LED
+bool led_status = false;
 
 float temperatureC;
 
@@ -39,9 +42,39 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
     case WStype_CONNECTED:
         break;
 
-    case WStype_TEXT:
-        break;
+    case WStype_TEXT: {
+        Serial.print("Received text: ");
+        Serial.println((char *)payload);
 
+        // get the JSON object
+        StaticJsonDocument<200> doc;
+        DeserializationError error = deserializeJson(doc, payload);
+
+        if (error) {
+            Serial.print("JSON failure: ");
+            Serial.println(error.c_str());
+            return;
+        }
+
+        // Getting the values from JSON
+        const String cmd_type = doc["type"];
+
+        
+        //TODO implement pattern, and single LED toggle
+        // type can be pattern or toggle
+        if(cmd_type == "toggle"){
+            Serial.println("turning on LED");
+            if (led_status == false)
+            {
+                digitalWrite(5,HIGH);
+                led_status = true;
+            }else{
+                digitalWrite(5,LOW);
+                led_status = false;
+            }
+        }
+        break;
+    }
     case WStype_DISCONNECTED:
         break;
     }
@@ -63,6 +96,8 @@ void setup()
 
     analogReadResolution(12);
     analogSetPinAttenuation(TEMP_PIN, ADC_11db);
+    // Test for LED toggle
+    pinMode(5,OUTPUT);
 
 }
 
