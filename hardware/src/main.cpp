@@ -3,8 +3,8 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 
-const char *ssid = "SSID";
-const char *password = "PASSWORD";
+const char *ssid = "ssid";
+const char *password = "password";
 
 WebSocketsClient webSocket;
 
@@ -15,8 +15,16 @@ WebSocketsClient webSocket;
 const long delayTime = 2000; //delay time 
 unsigned long previousMillis = 0;
 
-// Currently used to toggle LED
-bool led_status = false;
+const int numLeds = 6;
+const int ledPins[numLeds] = {13,12,11,10,9,6};
+
+bool ledStates[numLeds] = {false, false, false, false, false, false};
+
+String currentMode = "manual"; // Can be "manual", "chase", "blink", etc.
+
+// custom chase pattern sequence (index of pins)
+const int chaseSequence[numLeds] = {0, 2, 4, 5, 3, 1}; 
+int chaseStep = 0; // Tracks where in the sequence array
 
 float temperatureC;
 
@@ -57,22 +65,31 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
         }
 
         // Getting the values from JSON
-        const String cmd_type = doc["type"];
+        const String cmdType = doc["type"];
+
 
         
         //TODO implement pattern, and single LED toggle
         // type can be pattern or toggle
-        if(cmd_type == "toggle"){
-            Serial.println("turning on LED");
-            if (led_status == false)
+        if(cmdType == "toggle"){
+                int ledNum = doc["data"]; //index in array
+                int pinNum = ledPins[ledNum]; //pin led is connected to
+            if (ledStates[ledNum] == false)
             {
-                digitalWrite(5,HIGH);
-                led_status = true;
+                digitalWrite(pinNum,HIGH);
+                Serial.println("LED " + String(ledNum) + " turned on");
+                Serial.println("Pin " + String(pinNum) + " set to HIGH");
+                ledStates [ledNum] = true;
+                Serial.println("LED states: " + String(ledStates[0]) + ", " + String(ledStates[1]) + ", " + String(ledStates[2]) + ", " + String(ledStates[3]) + ", " + String(ledStates[4]) + ", " + String(ledStates[5]));
             }else{
-                digitalWrite(5,LOW);
-                led_status = false;
+                digitalWrite(pinNum,LOW);
+                Serial.println("LED " + String(ledNum) + " turned off");
+                Serial.println("Pin " + String(pinNum) + " set to LOW");
+                ledStates[ledNum] = false;
+                Serial.println("LED states: " + String(ledStates[0]) + ", " + String(ledStates[1]) + ", " + String(ledStates[2]) + ", " + String(ledStates[3]) + ", " + String(ledStates[4]) + ", " + String(ledStates[5]));
             }
         }
+        
         break;
     }
     case WStype_DISCONNECTED:
@@ -96,9 +113,12 @@ void setup()
 
     analogReadResolution(12);
     analogSetPinAttenuation(TEMP_PIN, ADC_11db);
-    // Test for LED toggle
-    pinMode(5,OUTPUT);
 
+    //set the pin mode for the LED pin
+    for(int i = 0; i < numLeds; i++){
+        pinMode(ledPins[i],OUTPUT);
+        digitalWrite(ledPins[i],LOW);
+    }
 }
 
 void loop()
