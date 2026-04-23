@@ -28,6 +28,7 @@ def hardware():
     except ConnectionClosed:
         hardware_ws = None
 
+    return ""
 
 @app.route("/software", websocket=True)
 def software():
@@ -44,6 +45,8 @@ def software():
                 hardware_ws.send(message)
     except ConnectionClosed:
         software_ws = None
+
+    return ""
 
 
 if __name__ == "__main__":

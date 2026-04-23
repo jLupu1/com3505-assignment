@@ -23,18 +23,20 @@ bool ledStates[numLeds] = {false, false, false, false, false, false};
 String currentMode = "manual"; // Can be "manual", "chase", "blink", etc.
 
 // ------ LED pattern delay variables ------
-const long ledDelay = 500; 
-unsigned long previousLedMillis = 0;
-int currentIndexChase = 0;
+const long chaseLedDelay = 100; 
+unsigned long previousLedMillis = 500;
 
 // ------ LED pattern sequence variables ------
+//Chase
+int currentChaseLed = 0;  
+int chaseDirection = 1;
 
-// custom chase pattern sequence (index of pins)
-const int chaseSequence[numLeds] = {0, 2, 4, 5, 3, 1}; 
-int chaseStep = 0; // Tracks where in the sequence array
+// blink
+bool isBlinkOn = false;
 
 
-// ------- Temperature variable -------
+
+// ------- Temperature variables and functions  -------
 float temperatureC;
 
 float readTemp(){
@@ -45,6 +47,14 @@ float readTemp(){
     return tempC;
 }
 
+void handleTemp(){
+    temperatureC = readTemp();
+    bool res = webSocket.sendTXT("{\"type\":\"temperature\",\"data\":" + String(temperatureC) + "}");
+    Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
+}
+
+
+// ------ LED control functions ------
 void lights_off(){
     for(int i = 0; i < numLeds; i++){
         digitalWrite(ledPins[i], LOW);
@@ -55,28 +65,44 @@ void lights_off(){
 void blink() {
     unsigned long currentMillis = millis();
     
-
-    if (currentMillis - previousLedMillis >= ledDelay) {
+    if (currentMillis - previousLedMillis >= chaseLedDelay) {
         previousLedMillis = currentMillis;
 
-
-        int prevStep = (chaseStep == 0) ? (numLeds - 1) : (chaseStep - 1);
-        int prevLedIndex = chaseSequence[prevStep];
-        digitalWrite(ledPins[prevLedIndex], LOW);
-
-
-        int currentLedIndex = chaseSequence[chaseStep];
-        digitalWrite(ledPins[currentLedIndex], HIGH);
-
-
-        chaseStep = (chaseStep + 1) % numLeds; 
+        isBlinkOn = !isBlinkOn;
+        for (int i = 0; i < numLeds; i++)
+        {
+            digitalWrite(ledPins[i], isBlinkOn ? HIGH : LOW);
+            ledStates[i] = isBlinkOn;
+        }
     }
 }
 
-void handleTemp(){
-    temperatureC = readTemp();
-    bool res = webSocket.sendTXT("{\"type\":\"temperature\",\"data\":" + String(temperatureC) + "}");
-    Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
+void chase() {
+    unsigned long currentMillis = millis();
+    
+    if (currentMillis - previousLedMillis >= chaseLedDelay) {
+        previousLedMillis = currentMillis;
+
+
+        digitalWrite(ledPins[currentChaseLed], LOW);
+        ledStates[currentChaseLed] = false;
+
+
+        currentChaseLed = currentChaseLed + chaseDirection;
+
+
+        if (currentChaseLed >= numLeds - 1) {
+            currentChaseLed = numLeds - 1; 
+            chaseDirection = -1;
+        } else if (currentChaseLed <= 0) {
+            currentChaseLed = 0;
+            chaseDirection = 1;
+        }
+
+
+        digitalWrite(ledPins[currentChaseLed], HIGH);
+        ledStates[currentChaseLed] = true;
+    }
 }
 
 
@@ -112,11 +138,11 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
 
 
         if(cmdType == "toggle"){
-            currentMode = "manual"; // Switch to manual mode
+            currentMode = "manual";
             int ledNum = doc["data"]; 
             int pinNum = ledPins[ledNum]; 
             
-            ledStates[ledNum] = !ledStates[ledNum]; // Flip the state
+            ledStates[ledNum] = !ledStates[ledNum]; 
             digitalWrite(pinNum, ledStates[ledNum] ? HIGH : LOW);
             
             Serial.println("Manual Toggle LED " + String(ledNum));
@@ -126,37 +152,10 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
             
             if (currentMode != patternType) {
                 currentMode = patternType; 
-                lights_off();              
-                chaseStep = 0;             
+                lights_off();                        
                 Serial.println("Switched to pattern: " + currentMode);
             }
         }
-
-        // Getting the values from JSON
-        // const String cmdType = doc["type"];
-
-
-        
-        // //TODO implement pattern, and single LED toggle
-        // // type can be pattern or toggle
-        // if(cmdType == "toggle"){
-        //         int ledNum = doc["data"]; //index in array
-        //         int pinNum = ledPins[ledNum]; //pin led is connected to
-        //     if (ledStates[ledNum] == false)
-        //     {
-        //         digitalWrite(pinNum,HIGH);
-        //         Serial.println("LED " + String(ledNum) + " turned on");
-        //         Serial.println("Pin " + String(pinNum) + " set to HIGH");
-        //         ledStates [ledNum] = true;
-        //         Serial.println("LED states: " + String(ledStates[0]) + ", " + String(ledStates[1]) + ", " + String(ledStates[2]) + ", " + String(ledStates[3]) + ", " + String(ledStates[4]) + ", " + String(ledStates[5]));
-        //     }else{
-        //         digitalWrite(pinNum,LOW);
-        //         Serial.println("LED " + String(ledNum) + " turned off");
-        //         Serial.println("Pin " + String(pinNum) + " set to LOW");
-        //         ledStates[ledNum] = false;
-        //         Serial.println("LED states: " + String(ledStates[0]) + ", " + String(ledStates[1]) + ", " + String(ledStates[2]) + ", " + String(ledStates[3]) + ", " + String(ledStates[4]) + ", " + String(ledStates[5]));
-        //     }
-        // }
         
         break;
     }
@@ -198,10 +197,11 @@ void loop()
         handleTemp();
     }
 
-    // Serial.println("Current mode: " + currentMode);
-
-    if (currentMode == "chase") {
+    if (currentMode == "blink") {
         blink();
+    }
+    else if (currentMode == "chase") {
+        chase();
     }
 
 }
