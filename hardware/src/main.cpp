@@ -3,8 +3,8 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 
-const char *ssid = "Jonathan iPhone";
-const char *password = "bihcilove67";
+const char *ssid = "ssid";
+const char *password = "password";
 
 WebSocketsClient webSocket;
 
@@ -26,6 +26,7 @@ String currentMode = "manual"; // Can be "manual", "chase", "blink", etc.
 const long chaseLedDelay = 100; 
 unsigned long previousLedMillis = 500;
 
+// ------ LED pattern sequence variables ------
 //Chase
 int currentChaseLed = 0;  
 int chaseDirection = 1;
@@ -33,14 +34,9 @@ int chaseDirection = 1;
 // blink
 bool isBlinkOn = false;
 
-// ------ LED pattern sequence variables ------
-
-// custom chase pattern sequence (index of pins)
-const int chaseSequence[numLeds] = {0, 2, 4, 5, 3, 1}; 
-int currentBlinkIndex = 0; // Tracks where in the sequence array
 
 
-// ------- Temperature variable -------
+// ------- Temperature variables and functions  -------
 float temperatureC;
 
 float readTemp(){
@@ -51,6 +47,14 @@ float readTemp(){
     return tempC;
 }
 
+void handleTemp(){
+    temperatureC = readTemp();
+    bool res = webSocket.sendTXT("{\"type\":\"temperature\",\"data\":" + String(temperatureC) + "}");
+    Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
+}
+
+
+// ------ LED control functions ------
 void lights_off(){
     for(int i = 0; i < numLeds; i++){
         digitalWrite(ledPins[i], LOW);
@@ -101,12 +105,6 @@ void chase() {
     }
 }
 
-void handleTemp(){
-    temperatureC = readTemp();
-    bool res = webSocket.sendTXT("{\"type\":\"temperature\",\"data\":" + String(temperatureC) + "}");
-    Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
-}
-
 
 
 void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
@@ -140,11 +138,11 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
 
 
         if(cmdType == "toggle"){
-            currentMode = "manual"; // Switch to manual mode
+            currentMode = "manual";
             int ledNum = doc["data"]; 
             int pinNum = ledPins[ledNum]; 
             
-            ledStates[ledNum] = !ledStates[ledNum]; // Flip the state
+            ledStates[ledNum] = !ledStates[ledNum]; 
             digitalWrite(pinNum, ledStates[ledNum] ? HIGH : LOW);
             
             Serial.println("Manual Toggle LED " + String(ledNum));
@@ -154,8 +152,7 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
             
             if (currentMode != patternType) {
                 currentMode = patternType; 
-                lights_off();              
-                currentBlinkIndex = 0;             
+                lights_off();                        
                 Serial.println("Switched to pattern: " + currentMode);
             }
         }
@@ -199,8 +196,6 @@ void loop()
         previousMillis = currentMillis;
         handleTemp();
     }
-
-    // Serial.println("Current mode: " + currentMode);
 
     if (currentMode == "blink") {
         blink();
