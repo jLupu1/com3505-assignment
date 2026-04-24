@@ -175,6 +175,7 @@ void setup()
         delay(500);
     }
     Serial.println("Connected to WiFi");
+    Serial.println(WiFi.localIP());
     webSocket.begin("172.20.10.3", 6767, "/hardware");
     webSocket.onEvent(webSocketEventHandler);
 
