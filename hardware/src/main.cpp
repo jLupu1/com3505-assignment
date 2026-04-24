@@ -3,6 +3,7 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 
+// Update with your network credentials
 const char *ssid = "ssid";
 const char *password = "password";
 
@@ -16,11 +17,12 @@ const long delayTime = 2000; //delay time
 unsigned long previousMillis = 0;
 
 const int numLeds = 6;
+// Pins LEDs are plugged in - GGYYRR
 const int ledPins[numLeds] = {13,12,11,10,9,6};
 
 bool ledStates[numLeds] = {false, false, false, false, false, false};
 
-String currentMode = "manual"; // Can be "manual", "chase", "blink", etc.
+String currentMode = "manual"; // Can be "manual", "chase", "blink", "rainbow", "fire"
 
 // ------ LED pattern delay variables ------
 const long chaseLedDelay = 100; 
@@ -33,6 +35,14 @@ int chaseDirection = 1;
 
 // blink
 bool isBlinkOn = false;
+
+// rainbow
+int rainbowStep = 0;
+int rainbowDelay = 150;
+
+// fire
+unsigned long fireLastUpdate = 0;
+int fireDelay = 50;
 
 
 
@@ -55,7 +65,7 @@ void handleTemp(){
 
 
 // ------ LED control functions ------
-void lights_off(){
+void lightsOff(){
     for(int i = 0; i < numLeds; i++){
         digitalWrite(ledPins[i], LOW);
         ledStates[i] = false;
@@ -105,6 +115,43 @@ void chase() {
     }
 }
 
+// 3 LEDs that turn on and move across the array
+void rainbow() {
+    unsigned long currentRainbowMillis = millis();
+    if (currentRainbowMillis - previousLedMillis >= rainbowDelay) {
+        previousLedMillis = currentRainbowMillis;
+        lightsOff();
+
+        for(int i = 0; i < 3; i++){
+            int activeLed = (rainbowStep + i) % numLeds;
+            digitalWrite(ledPins[activeLed], HIGH);
+            ledStates[activeLed] = true;
+        }
+
+        rainbowStep = (rainbowStep + 1) % numLeds;
+    }
+}
+
+void fire() {
+    unsigned long currentFireMillis = millis();
+    if (currentFireMillis - fireLastUpdate >= fireDelay) {
+        fireLastUpdate = currentFireMillis;
+
+        //Green lights off
+        digitalWrite(ledPins[0], LOW);
+        digitalWrite(ledPins[1], LOW);
+
+        // flicker red and yellow lights at random intervals
+        for(int i = 2; i < numLeds; i++){
+            bool isOn = random(0,2);
+            digitalWrite(ledPins[i], isOn ? HIGH : LOW);
+            ledStates[i] = isOn;
+        }
+
+        fireDelay = random(20, 80);
+    }
+}
+
 
 
 void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
@@ -131,7 +178,7 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
         const String cmdType = doc["type"];
         if (currentMode != "manual")
         {
-            lights_off();
+            lightsOff();
         }
         
 
@@ -152,7 +199,7 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
             
             if (currentMode != patternType) {
                 currentMode = patternType; 
-                lights_off();                        
+                lightsOff();                        
                 Serial.println("Switched to pattern: " + currentMode);
             }
         }
@@ -174,9 +221,9 @@ void setup()
         Serial.println("Connecting to WiFi...");
         delay(500);
     }
-    Serial.println("Connected to WiFi");
-    Serial.println(WiFi.localIP());
-    webSocket.begin("172.20.10.3", 6767, "/hardware");
+    Serial.println("Connected to WiFi. IP address: " + WiFi.localIP().toString());
+
+    webSocket.begin("172.20.10.3", 6767, "/hardware"); // Update with server's IP and port that is set up in app.py
     webSocket.onEvent(webSocketEventHandler);
 
     analogReadResolution(12);
@@ -203,6 +250,12 @@ void loop()
     }
     else if (currentMode == "chase") {
         chase();
+    }
+    else if (currentMode == "rainbow") {
+        rainbow();
+    }
+    else if (currentMode == "fire") {
+        fire();
     }
 
 }
