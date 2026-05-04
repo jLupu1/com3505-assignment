@@ -16,6 +16,9 @@ WebSocketsClient webSocket;
 const long delayTime = 2000; //delay time 
 unsigned long previousMillis = 0;
 
+const long updateDelay = 200;
+unsigned long previousUpdate = 0;
+
 const int numLeds = 6;
 // Pins LEDs are plugged in - GGYYRR
 const int ledPins[numLeds] = {13,12,11,10,9,6};
@@ -256,6 +259,20 @@ void loop()
     }
     else if (currentMode == "fire") {
         fire();
+    }
+
+    if (currentMillis - previousUpdate >= updateDelay) {
+        String message = "{\"type\":\"ledArray\",\"data\":[";
+        for (size_t i = 0; i < numLeds; i++)
+        {
+            message += ledStates[i] ? "255" : "0";
+            if (i < numLeds - 1) {
+                message += ",";
+            }
+        }
+        message += "]}";
+
+        bool res = webSocket.sendTXT(message);
     }
 
 }
