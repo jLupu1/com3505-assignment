@@ -13,7 +13,7 @@ WebSocketsClient webSocket;
 #define ADC_MAX 4095.0
 #define VREF 3.3
 
-const long delayTime = 2000; //delay time 
+const long delayTime = 2000; // delay time
 unsigned long previousMillis = 0;
 
 const long updateDelay = 200;
@@ -21,19 +21,19 @@ unsigned long previousUpdate = 0;
 
 const int numLeds = 6;
 // Pins LEDs are plugged in - GGYYRR
-const int ledPins[numLeds] = {13,12,11,10,9,6};
+const int ledPins[numLeds] = {13, 12, 11, 10, 9, 6};
 
 bool ledStates[numLeds] = {false, false, false, false, false, false};
 
 String currentMode = "manual"; // Can be "manual", "chase", "blink", "rainbow", "fire"
 
 // ------ LED pattern delay variables ------
-const long chaseLedDelay = 100; 
+const long chaseLedDelay = 100;
 unsigned long previousLedMillis = 500;
 
 // ------ LED pattern sequence variables ------
-//Chase
-int currentChaseLed = 0;  
+// Chase
+int currentChaseLed = 0;
 int chaseDirection = 1;
 
 // blink
@@ -47,14 +47,13 @@ int rainbowDelay = 150;
 unsigned long fireLastUpdate = 0;
 int fireDelay = 50;
 
-
-
 // ------- Temperature variables and functions  -------
 float temperatureC;
 bool firstTempRead = false;
 float firstTemp;
 
-float readTemp(){
+float readTemp()
+{
     int adcValue = analogRead(TEMP_PIN);
     float voltage = adcValue * VREF / ADC_MAX;
     float tempC = (voltage - 0.5) * 100.0;
@@ -62,9 +61,11 @@ float readTemp(){
     return tempC;
 }
 
-void handleTemp(){
+void handleTemp()
+{
     temperatureC = readTemp();
-    if (!firstTempRead) {
+    if (!firstTempRead)
+    {
         firstTempRead = true;
         firstTemp = temperatureC;
     }
@@ -72,19 +73,22 @@ void handleTemp(){
     Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
 }
 
-
 // ------ LED control functions ------
-void lightsOff(){
-    for(int i = 0; i < numLeds; i++){
+void lightsOff()
+{
+    for (int i = 0; i < numLeds; i++)
+    {
         digitalWrite(ledPins[i], LOW);
         ledStates[i] = false;
     }
 }
 
-void blink() {
+void blink()
+{
     unsigned long currentMillis = millis();
-    
-    if (currentMillis - previousLedMillis >= chaseLedDelay) {
+
+    if (currentMillis - previousLedMillis >= chaseLedDelay)
+    {
         previousLedMillis = currentMillis;
 
         isBlinkOn = !isBlinkOn;
@@ -96,28 +100,29 @@ void blink() {
     }
 }
 
-void chase() {
+void chase()
+{
     unsigned long currentMillis = millis();
-    
-    if (currentMillis - previousLedMillis >= chaseLedDelay) {
-        previousLedMillis = currentMillis;
 
+    if (currentMillis - previousLedMillis >= chaseLedDelay)
+    {
+        previousLedMillis = currentMillis;
 
         digitalWrite(ledPins[currentChaseLed], LOW);
         ledStates[currentChaseLed] = false;
 
-
         currentChaseLed = currentChaseLed + chaseDirection;
 
-
-        if (currentChaseLed >= numLeds - 1) {
-            currentChaseLed = numLeds - 1; 
+        if (currentChaseLed >= numLeds - 1)
+        {
+            currentChaseLed = numLeds - 1;
             chaseDirection = -1;
-        } else if (currentChaseLed <= 0) {
+        }
+        else if (currentChaseLed <= 0)
+        {
             currentChaseLed = 0;
             chaseDirection = 1;
         }
-
 
         digitalWrite(ledPins[currentChaseLed], HIGH);
         ledStates[currentChaseLed] = true;
@@ -125,13 +130,16 @@ void chase() {
 }
 
 // 3 LEDs that turn on and move across the array
-void rainbow() {
+void rainbow()
+{
     unsigned long currentRainbowMillis = millis();
-    if (currentRainbowMillis - previousLedMillis >= rainbowDelay) {
+    if (currentRainbowMillis - previousLedMillis >= rainbowDelay)
+    {
         previousLedMillis = currentRainbowMillis;
         lightsOff();
 
-        for(int i = 0; i < 3; i++){
+        for (int i = 0; i < 3; i++)
+        {
             int activeLed = (rainbowStep + i) % numLeds;
             digitalWrite(ledPins[activeLed], HIGH);
             ledStates[activeLed] = true;
@@ -141,18 +149,21 @@ void rainbow() {
     }
 }
 
-void fire() {
+void fire()
+{
     unsigned long currentFireMillis = millis();
-    if (currentFireMillis - fireLastUpdate >= fireDelay) {
+    if (currentFireMillis - fireLastUpdate >= fireDelay)
+    {
         fireLastUpdate = currentFireMillis;
 
-        //Green lights off
+        // Green lights off
         digitalWrite(ledPins[0], LOW);
         digitalWrite(ledPins[1], LOW);
 
         // flicker red and yellow lights at random intervals
-        for(int i = 2; i < numLeds; i++){
-            bool isOn = random(0,2);
+        for (int i = 2; i < numLeds; i++)
+        {
+            bool isOn = random(0, 2);
             digitalWrite(ledPins[i], isOn ? HIGH : LOW);
             ledStates[i] = isOn;
         }
@@ -164,11 +175,14 @@ void fire() {
 int binaryCounter = 0;
 unsigned long lastBinary = 0;
 unsigned long binaryDelay = 500;
-void binary() {
+void binary()
+{
     unsigned long currentMillis = millis();
-    if (currentMillis > lastBinary + binaryDelay) {
+    if (currentMillis > lastBinary + binaryDelay)
+    {
         binaryCounter += 1;
-        if (binaryCounter == 64) binaryCounter = 1;
+        if (binaryCounter == 64)
+            binaryCounter = 1;
         ledStates[0] = binaryCounter & 1;
         ledStates[1] = binaryCounter & 2;
         ledStates[2] = binaryCounter & 4;
@@ -176,14 +190,21 @@ void binary() {
         ledStates[4] = binaryCounter & 16;
         ledStates[5] = binaryCounter & 32;
     }
+
+    for (int i = 0; i < numLeds; i++)
+    {
+        digitalWrite(ledPins[i], ledStates[i] ? HIGH : LOW);
+    }
 }
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) < (Y)) ? (Y) : (X))
 
-void temperature() {
+void temperature()
+{
     float diff = readTemp() - firstTemp;
-    if (diff > 0) {
+    if (diff > 0)
+    {
         int lights = (int)(diff);
         ledStates[0] = true;
         ledStates[1] = true;
@@ -192,16 +213,21 @@ void temperature() {
         {
             ledStates[3 + i] = true;
         }
-    } else {
+    }
+    else
+    {
         int lights = (int)(diff * -1);
         for (size_t i = MIN(2, lights); i >= 0; i--)
         {
             ledStates[2 - i] = true;
         }
     }
+
+    for (int i = 0; i < numLeds; i++)
+    {
+        digitalWrite(ledPins[i], ledStates[i] ? HIGH : LOW);
+    }
 }
-
-
 
 void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
 {
@@ -210,7 +236,8 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
     case WStype_CONNECTED:
         break;
 
-    case WStype_TEXT: {
+    case WStype_TEXT:
+    {
         Serial.print("Received text: ");
         Serial.println((char *)payload);
 
@@ -218,7 +245,8 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
         StaticJsonDocument<200> doc;
         DeserializationError error = deserializeJson(doc, payload);
 
-        if (error) {
+        if (error)
+        {
             Serial.print("JSON failure: ");
             Serial.println(error.c_str());
             return;
@@ -229,30 +257,30 @@ void webSocketEventHandler(WStype_t type, uint8_t *payload, size_t length)
         {
             lightsOff();
         }
-        
 
-
-
-        if(cmdType == "toggle"){
+        if (cmdType == "toggle")
+        {
             currentMode = "manual";
-            int ledNum = doc["data"]; 
-            int pinNum = ledPins[ledNum]; 
-            
-            ledStates[ledNum] = !ledStates[ledNum]; 
+            int ledNum = doc["data"];
+            int pinNum = ledPins[ledNum];
+
+            ledStates[ledNum] = !ledStates[ledNum];
             digitalWrite(pinNum, ledStates[ledNum] ? HIGH : LOW);
-            
+
             Serial.println("Manual Toggle LED " + String(ledNum));
         }
-        else if (cmdType == "pattern"){
-            String patternType = doc["data"]; 
-            
-            if (currentMode != patternType) {
-                currentMode = patternType; 
-                lightsOff();                        
+        else if (cmdType == "pattern")
+        {
+            String patternType = doc["data"];
+
+            if (currentMode != patternType)
+            {
+                currentMode = patternType;
+                lightsOff();
                 Serial.println("Switched to pattern: " + currentMode);
             }
         }
-        
+
         break;
     }
     case WStype_DISCONNECTED:
@@ -278,10 +306,11 @@ void setup()
     analogReadResolution(12);
     analogSetPinAttenuation(TEMP_PIN, ADC_11db);
 
-    //set the pin mode for the LED pin
-    for(int i = 0; i < numLeds; i++){
-        pinMode(ledPins[i],OUTPUT);
-        digitalWrite(ledPins[i],LOW);
+    // set the pin mode for the LED pin
+    for (int i = 0; i < numLeds; i++)
+    {
+        pinMode(ledPins[i], OUTPUT);
+        digitalWrite(ledPins[i], LOW);
     }
 }
 
@@ -289,36 +318,45 @@ void loop()
 {
     webSocket.loop();
     unsigned long currentMillis = millis();
-    if(currentMillis - previousMillis >= delayTime) {
+    if (currentMillis - previousMillis >= delayTime)
+    {
         previousMillis = currentMillis;
         handleTemp();
     }
 
-    if (currentMode == "blink") {
+    if (currentMode == "blink")
+    {
         blink();
     }
-    else if (currentMode == "chase") {
+    else if (currentMode == "chase")
+    {
         chase();
     }
-    else if (currentMode == "rainbow") {
+    else if (currentMode == "rainbow")
+    {
         rainbow();
     }
-    else if (currentMode == "fire") {
+    else if (currentMode == "fire")
+    {
         fire();
     }
-    else if (currentMode == "binary") {
+    else if (currentMode == "binary")
+    {
         binary();
     }
-    else if (currentMode == "temperature") {
+    else if (currentMode == "temperature")
+    {
         temperature();
     }
 
-    if (currentMillis - previousUpdate >= updateDelay) {
+    if (currentMillis - previousUpdate >= updateDelay)
+    {
         String message = "{\"type\":\"ledArray\",\"data\":[";
         for (size_t i = 0; i < numLeds; i++)
         {
             message += ledStates[i] ? "255" : "0";
-            if (i < numLeds - 1) {
+            if (i < numLeds - 1)
+            {
                 message += ",";
             }
         }
@@ -326,5 +364,4 @@ void loop()
 
         bool res = webSocket.sendTXT(message);
     }
-
 }
