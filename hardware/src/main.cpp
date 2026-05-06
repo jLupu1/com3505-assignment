@@ -184,6 +184,7 @@ void binary() {
 void temperature() {
     float diff = readTemp() - firstTemp;
     if (diff > 0) {
+        int lights = (int)(diff);
         ledStates[0] = true;
         ledStates[1] = true;
         ledStates[2] = true;
