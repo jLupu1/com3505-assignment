@@ -203,7 +203,7 @@ void binary()
 
 void temperature()
 {
-    float diff = readTemp() - firstTemp;
+    float diff = temperatureC - firstTemp;
     if (diff > 0)
     {
         int lights = (int)(diff);
