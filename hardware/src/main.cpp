@@ -51,6 +51,8 @@ int fireDelay = 50;
 
 // ------- Temperature variables and functions  -------
 float temperatureC;
+bool firstTempRead = false;
+float firstTemp;
 
 float readTemp(){
     int adcValue = analogRead(TEMP_PIN);
@@ -62,6 +64,10 @@ float readTemp(){
 
 void handleTemp(){
     temperatureC = readTemp();
+    if (!firstTempRead) {
+        firstTempRead = true;
+        firstTemp = temperatureC;
+    }
     bool res = webSocket.sendTXT("{\"type\":\"temperature\",\"data\":" + String(temperatureC) + "}");
     Serial.println("Temperature sent: " + String(temperatureC) + "°C, success: " + String(res));
 }
@@ -152,6 +158,45 @@ void fire() {
         }
 
         fireDelay = random(20, 80);
+    }
+}
+
+int binaryCounter = 0;
+unsigned long lastBinary = 0;
+unsigned long binaryDelay = 500;
+void binary() {
+    unsigned long currentMillis = millis();
+    if (currentMillis > lastBinary + binaryDelay) {
+        binaryCounter += 1;
+        if (binaryCounter == 64) binaryCounter = 1;
+        ledStates[0] = binaryCounter & 1;
+        ledStates[1] = binaryCounter & 2;
+        ledStates[2] = binaryCounter & 4;
+        ledStates[3] = binaryCounter & 8;
+        ledStates[4] = binaryCounter & 16;
+        ledStates[5] = binaryCounter & 32;
+    }
+}
+
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) < (Y)) ? (Y) : (X))
+
+void temperature() {
+    float diff = readTemp() - firstTemp;
+    if (diff > 0) {
+        ledStates[0] = true;
+        ledStates[1] = true;
+        ledStates[2] = true;
+        for (size_t i = 0; i < MIN(lights, 3); i++)
+        {
+            ledStates[3 + i] = true;
+        }
+    } else {
+        int lights = (int)(diff * -1);
+        for (size_t i = MIN(2, lights); i >= 0; i--)
+        {
+            ledStates[i] = true;
+        }
     }
 }
 
@@ -259,6 +304,12 @@ void loop()
     }
     else if (currentMode == "fire") {
         fire();
+    }
+    else if (currentMode == "binary") {
+        binary();
+    }
+    else if (currentMode == "temperature") {
+        temperature();
     }
 
     if (currentMillis - previousUpdate >= updateDelay) {
