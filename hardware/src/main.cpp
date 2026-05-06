@@ -180,6 +180,7 @@ void binary()
     unsigned long currentMillis = millis();
     if (currentMillis > lastBinary + binaryDelay)
     {
+        lastBinary = currentMillis;
         binaryCounter += 1;
         if (binaryCounter == 64)
             binaryCounter = 1;
