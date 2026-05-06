@@ -195,7 +195,7 @@ void temperature() {
         int lights = (int)(diff * -1);
         for (size_t i = MIN(2, lights); i >= 0; i--)
         {
-            ledStates[i] = true;
+            ledStates[2 - i] = true;
         }
     }
 }
