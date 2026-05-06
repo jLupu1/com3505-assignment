@@ -210,15 +210,15 @@ void temperature()
         ledStates[0] = true;
         ledStates[1] = true;
         ledStates[2] = true;
-        for (size_t i = 0; i < MIN(lights, 3); i++)
+        for (int i = 0; i < MIN(lights, 3); i++)
         {
             ledStates[3 + i] = true;
         }
     }
     else
     {
-        int lights = (int)(diff * -1);
-        for (size_t i = MIN(2, lights); i >= 0; i--)
+        int lights = (int)(diff * -1.0);
+        for (int i = MIN(2, lights); i >= 0; i--)
         {
             ledStates[2 - i] = true;
         }
