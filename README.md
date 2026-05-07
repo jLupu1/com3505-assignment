@@ -1,7 +1,7 @@
 # COM3505: ESP32 IoT Environmental Monitor & LED Controller
 
 ## Overview
-This project implements an interactive Internet of Things (IoT) system powered by an ESP32-S3-mini-1 microcontroller. Users can interact with a responsive web interface hosted on a Python Flask server to manually control a 6-LED array or trigger one of four dynamic animation patterns (Blink, Chase, Rainbow, Fire). Additionally, the dashboard features an automatically updating chart displaying live temperature readings from a physical TMP36 sensor.
+This project implements an interactive Internet of Things (IoT) system powered by an ESP32-S3-mini-1 microcontroller. Users can interact with a responsive web interface hosted on a Python Flask server to manually control a 6-LED array or trigger one of six dynamic animation patterns (Blink, Chase, Rainbow, Fire, Binary, Temperature). Additionally, the dashboard features an automatically updating chart displaying live temperature readings from a physical TMP36 sensor.
 
 ## Prerequisites
 Before running this project, ensure you have the following installed:
